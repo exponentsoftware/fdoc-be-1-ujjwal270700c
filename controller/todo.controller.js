@@ -1,5 +1,6 @@
 const TodoModel=require('../models/todo.model')
 
+
 exports.create=async (req,res) =>{
     try {
         const {userName,title,category}=req.body
@@ -9,8 +10,7 @@ exports.create=async (req,res) =>{
             taskDone:false,
             category,
         }
-        const todoLists=await TodoModel.find();
-        const found=todoLists.find(itme => itme.userName === userName)
+        const found=await TodoModel.findOne({userName:userName});
         if(found){
            return res.status(400).json({
                 message:"User name is already exist please use different username"
@@ -47,10 +47,17 @@ exports.getTodoById=async(req,res)=>{
     try {
         const {id}=req.params;
         const data=await TodoModel.findById(id)
-        return res.status(201).json({
-            status:"Success",
-            data:data
-        });
+        if(data){
+            return res.status(201).json({
+                status:"Success",
+                data:data
+            });
+        }else{
+            return res.status(404).json({
+                message:"No data Found"
+            });
+        }
+      
     } catch (error) {
         res.status(400).json({
             message:error.message
@@ -61,19 +68,13 @@ exports.getTodoById=async(req,res)=>{
 exports.updateById=async (req,res)=>{
     try {
         const {id}=req.params;
-        const {userName,title,taskDone,category}=req.body;
-        const todoLists=await TodoModel.find();
-        const found=todoLists.find(itme => itme.userName === userName)
-        if(found){
-           return res.status(400).json({
-                message:"userName already exists please choose different one"
-            })
-        }
-        const data={userName,title,taskDone,category,updatedAt:new Date()}
-     await TodoModel.findByIdAndUpdate(id,data,{runValidators:true})
+        const {title,taskDone,category}=req.body;
+        const data={title,taskDone,category,updatedAt:new Date()}
+    const data1= await TodoModel.findByIdAndUpdate(id,data,{runValidators:true})
         return res.status(201).json({
             status:"Success",
             message:"Data updated successfully!",
+            data:data1
         });
     } catch (error) {
         res.status(400).json({
